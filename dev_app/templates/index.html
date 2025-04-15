@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Meeting Assistant</title>
+</head>
+<body>
+    <h1>Meeting Assistant</h1>
+    
+    <!-- Flash Messages -->
+    <!-- {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li >
+              {{ message }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %} -->
+    
+    <!-- No form here now -->
+    
+    <!-- Upcoming Meetings -->
+    <h2>Upcoming Meetings</h2>
+    <table >
+        <thead style="border: 1px">
+            <tr>
+                <th>Subject</th>
+                <th>Start Time</th>
+                <th>Account</th> <!-- New Column -->
+                <th>Alert Job ID</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for meeting in meetings %}
+            <tr>
+                <td>{{ meeting.subject }}</td>
+                <td>{{ meeting.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ meeting.account }}</td> <!-- Display account info -->
+                <td>{{ meeting.alert_job_id }}</td>
+                <td>
+                    <a href="{{ url_for('snooze_meeting', meeting_id=meeting.id) }}">Snooze</a> |
+                    <a href="{{ url_for('cancel_meeting', meeting_id=meeting.id) }}">Cancel</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">No meetings scheduled.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    
+</body>
+</html>
