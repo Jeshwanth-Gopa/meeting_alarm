@@ -1,4 +1,5 @@
 import win32com.client
+import pywintypes
 from datetime import datetime, timedelta, timezone
 
 days_ahead = 8  # Number of days to look ahead for meetings
@@ -6,6 +7,12 @@ days_ahead = 8  # Number of days to look ahead for meetings
 # Initialize Outlook COM object
 outlook = win32com.client.Dispatch("Outlook.Application")
 namespace = outlook.GetNamespace("MAPI")
+
+def remove_timezone(dt):
+    # Remove the timezone information, making it naive if it is aware
+    if dt.tzinfo:
+        return dt.replace(tzinfo=None)
+    return dt
 
 def meetings_ahead(namespace, days_ahead):
     """
@@ -27,7 +34,7 @@ def meetings_ahead(namespace, days_ahead):
             }
     """
     # Time range
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     end_time = now + timedelta(days=days_ahead)
 
     # Get all accounts
@@ -37,7 +44,7 @@ def meetings_ahead(namespace, days_ahead):
 
     for account in accounts:
         try:
-            print(f"\nAccount: {account.SmtpAddress}")
+            # print(f"\nAccount: {account.SmtpAddress}")
             
             # Access root folder and Calendar folder
             root_folder = namespace.Folders(account.DisplayName)
@@ -53,18 +60,12 @@ def meetings_ahead(namespace, days_ahead):
 
             for item in items:
                 try:
-                    start = item.Start
-                    end = item.End
+                    start = remove_timezone(item.Start)
+                    end = remove_timezone(item.End)
                     
                     # Skip items without start time
                     if start is None:
                         continue
-
-                    # Convert start to timezone-aware
-                    if not hasattr(start, 'tzinfo') or start.tzinfo is None:
-                        start = start.replace(tzinfo=timezone.utc)
-                    if not hasattr(end, 'tzinfo') or end.tzinfo is None:
-                        end = end.replace(tzinfo=timezone.utc)
 
                     # Filter by time range
                     if now <= start <= end_time:
@@ -84,8 +85,8 @@ def meetings_ahead(namespace, days_ahead):
 
     return meetings_per_account
 
-meet = meetings_ahead(namespace, days_ahead)
-for account, meetings in meet.items():
-    print(f"\nAccount: {account}")
-    for meeting in meetings:
-        print(f"Subject: {meeting['subject']}, Start: {meeting['start']}, End: {meeting['end']}")
+# meet = meetings_ahead(namespace, days_ahead)
+# for account, meetings in meet.items():
+#     print(f"\nAccount: {account}")
+#     for meeting in meetings:
+#         print(f"Subject: {meeting['subject']}, Start: {meeting['start']}, End: {meeting['end']}")
